@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI PDF Word Cloud Generator</title>
+    <!-- Google Fonts: Outfit (English UI), Noto Sans KR (Korean UI/Words), JetBrains Mono (Stats/Code) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Meta tags for SEO -->
+    <meta name="description" content="웹 브라우저에서 100% 로컬로 작동하는 프리미엄 PDF 워드클라우드 생성기. 서버 업로드 없이 안전하게 개인정보를 보호하며 PDF 텍스트를 시각화하세요.">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Controls -->
+        <aside class="sidebar">
+            <header class="app-header">
+                <div class="logo-container">
+                    <svg class="logo-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 3V21M3 12H21M12 3C8.5 7 8.5 17 12 21M12 3C15.5 7 15.5 17 12 21M3 12C7 8.5 17 8.5 21 12M3 12C7 15.5 17 15.5 21 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <h1>LexiCloud</h1>
+                </div>
+                <p class="subtitle">Premium PDF Word Cloud</p>
+            </header>
+
+            <!-- File Upload Card (Supports Multiple) -->
+            <section class="card upload-card">
+                <div id="drop-zone" class="drop-zone">
+                    <input type="file" id="file-input" accept=".pdf" class="file-input" multiple>
+                    <div class="drop-zone-content">
+                        <svg class="upload-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M12 16V8M12 8L9 11M12 8L15 11M3 15V16C3 18.2091 4.79086 20 7 20H17C19.2091 20 21 18.2091 21 16V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span class="upload-text">PDF 파일들을 드래그하거나 클릭하세요</span>
+                        <span class="upload-subtext">여러 파일 동시 업로드 및 병합 분석 지원</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Text & Extraction Settings -->
+            <section class="card config-card">
+                <h2>텍스트 처리 설정</h2>
+                
+                <div class="control-group">
+                    <div class="control-label">
+                        <label for="top-n-slider">단어 수 제한 (Top N)</label>
+                        <span id="top-n-val" class="badge">50</span>
+                    </div>
+                    <input type="range" id="top-n-slider" min="10" max="250" value="50" step="5" class="slider">
+                </div>
+
+                <div class="control-group">
+                    <div class="control-label">
+                        <label for="min-len-slider">최소 단어 길이</label>
+                        <span id="min-len-val" class="badge">2</span>
+                    </div>
+                    <input type="range" id="min-len-slider" min="1" max="6" value="2" step="1" class="slider">
+                </div>
+
+                <div class="control-group">
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="exclude-numbers" checked>
+                        <label for="exclude-numbers">숫자 제외</label>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <label for="stop-words">제외 단어 (Stop Words)</label>
+                    <textarea id="stop-words" placeholder="쉼표(,)로 구분된 단어들을 입력하세요..." class="textarea"></textarea>
+                    <div class="textarea-actions">
+                        <button id="reset-stopwords" class="btn-text">기본값으로 복원</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Design & Layout Settings -->
+            <section class="card config-card">
+                <h2>시각화 디자인</h2>
+                
+                <div class="control-group">
+                    <label for="color-palette">색상 테마</label>
+                    <select id="color-palette" class="select">
+                        <option value="cyberpunk">Cyberpunk Neon</option>
+                        <option value="ocean">Ocean Breeze</option>
+                        <option value="sunset">Sunset Glow</option>
+                        <option value="emerald">Emerald Forest</option>
+                        <option value="monochrome">Slate Monochrome</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="cloud-shape">클라우드 형태</label>
+                    <select id="cloud-shape" class="select">
+                        <option value="circle">원형 (Circle)</option>
+                        <option value="cardioid">하트형 (Cardioid)</option>
+                        <option value="diamond">다이아몬드형 (Diamond)</option>
+                        <option value="square">사각형 (Square)</option>
+                        <option value="triangle">삼각형 (Triangle)</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="font-family">폰트 스타일</label>
+                    <select id="font-family" class="select">
+                        <option value="Outfit, Noto Sans KR">Outfit / 본고딕 (기본)</option>
+                        <option value="Noto Sans KR">Noto Sans KR (부드러운 한글)</option>
+                        <option value="JetBrains Mono">JetBrains Mono (코딩 스타일)</option>
+                        <option value="serif">Serif (클래식 바탕체)</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="bg-color">배경색</label>
+                    <select id="bg-color" class="select">
+                        <option value="transparent">투명 (Transparent)</option>
+                        <option value="#0f0f15">다크 네이비 (기본)</option>
+                        <option value="#ffffff">화이트 (White)</option>
+                        <option value="#18181c">딥 그레이 (Deep Gray)</option>
+                    </select>
+                </div>
+            </section>
+        </aside>
+
+        <!-- Main Display Panel -->
+        <main class="main-content">
+            <!-- Header bar for File Info & General Controls -->
+            <div class="top-bar">
+                <div class="file-info-container">
+                    <span class="status-indicator idle" id="status-dot"></span>
+                    <span class="file-name-display" id="file-name">선택된 파일 없음</span>
+                    <span class="file-meta-display" id="file-meta">PDF 파일을 업로드해 주세요</span>
+                </div>
+                
+                <div class="actions-container">
+                    <button id="clear-btn" class="btn btn-secondary" disabled>
+                        <svg viewBox="0 0 24 24" fill="none" class="btn-icon">
+                            <path d="M19 7L18.1327 19.1425C18.0579 20.1891 17.187 21 16.1378 21H7.86224C6.81296 21 5.94208 20.1891 5.86725 19.1425L5 7M10 11V17M14 11V17M15 7V4C15 3.44772 14.5523 3 14 3H10C9.44772 3 9 3.44772 9 4V7M4 7H20" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        모두 비우기
+                    </button>
+                    <button id="regenerate-btn" class="btn btn-secondary" disabled>
+                        <svg viewBox="0 0 24 24" fill="none" class="btn-icon">
+                            <path d="M4 4V9H4.582M19.938 11C19.446 7.053 16.079 4 12 4C8.636 4 5.719 6.012 4.582 9M4.582 9H9M20 20V15H19.418M19.418 15C18.281 17.988 15.364 20 12 20C7.921 20 4.554 16.947 4.062 13M19.418 15H15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        재생성
+                    </button>
+                    <button id="download-btn" class="btn btn-primary" disabled>
+                        <svg viewBox="0 0 24 24" fill="none" class="btn-icon">
+                            <path d="M4 16V17C4 18.6569 5.34315 20 7 20H17C19.2091 20 21 18.2091 21 16V15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        PNG 저장
+                    </button>
+                </div>
+            </div>
+
+            <!-- Visualization Canvas Area -->
+            <div class="visualization-wrapper">
+                <div class="canvas-container" id="canvas-container">
+                    <canvas id="cloud-canvas"></canvas>
+                    
+                    <!-- Floating Camera Zoom/Pan Controls -->
+                    <div class="canvas-controls d-none" id="canvas-controls">
+                        <span class="zoom-indicator" id="zoom-indicator">100%</span>
+                        <button id="reset-view-btn" class="btn-floating" title="보기 초기화 (중앙 정렬)">
+                            <svg viewBox="0 0 24 24" fill="none" class="floating-icon">
+                                <path d="M4 4V9H4.582M19.938 11C19.446 7.053 16.079 4 12 4C8.636 4 5.719 6.012 4.582 9M4.582 9H9M20 20V15H19.418M19.418 15C18.281 17.988 15.364 20 12 20C7.921 20 4.554 16.947 4.062 13M19.418 15H15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- App Overlay for Loading and Empty States -->
+                    <div class="overlay" id="app-overlay">
+                        <div class="overlay-content">
+                            <!-- Idle State -->
+                            <div class="state-view" id="state-idle">
+                                <div class="pulse-ring">
+                                    <svg viewBox="0 0 24 24" fill="none" class="big-icon">
+                                        <path d="M12 4.5V19.5M12 4.5L6 10.5M12 4.5L18 10.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </div>
+                                <h3>시작하려면 PDF 파일을 올려주세요</h3>
+                                <p>여러 개의 PDF를 동시에 업로드하여 병합된 분석 결과를 얻을 수 있습니다.</p>
+                            </div>
+
+                            <!-- Loading State -->
+                            <div class="state-view d-none" id="state-loading">
+                                <div class="spinner"></div>
+                                <h3 id="loading-title">PDF 문서를 분석하고 있습니다</h3>
+                                <p id="loading-subtitle">텍스트 추출 및 정제 작업 중...</p>
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar" id="load-progress"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Analytics Panel -->
+            <div class="analytics-panel card">
+                <h3>단어 분석 통계</h3>
+                <div class="stats-overview">
+                    <div class="stat-box">
+                        <span class="stat-label">총 단어 수</span>
+                        <span class="stat-value" id="stat-total-words">-</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">고유 단어 수</span>
+                        <span class="stat-value" id="stat-unique-words">-</span>
+                    </div>
+                    <div class="stat-box">
+                        <span class="stat-label">분석 소요 시간</span>
+                        <span class="stat-value" id="stat-parse-time">-</span>
+                    </div>
+                </div>
+                
+                <div class="words-table-container">
+                    <h4>가장 자주 등장한 단어 Top 10</h4>
+                    <div class="table-scroll">
+                        <table class="words-table">
+                            <thead>
+                                <tr>
+                                    <th>순위</th>
+                                    <th>단어</th>
+                                    <th>빈도수</th>
+                                    <th>비율 (%)</th>
+                                    <th>비고</th>
+                                </tr>
+                            </thead>
+                            <tbody id="top-words-body">
+                                <tr>
+                                    <td colspan="5" class="empty-table">데이터가 없습니다. PDF를 업로드해 주세요.</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- PDF.js from Mozilla CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <!-- WordCloud2.js from jsDelivr CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/wordcloud2.js/1.2.2/wordcloud2.min.js"></script>
+    <!-- Custom Application Script -->
+    <script src="app.js"></script>
+</body>
+</html>
